@@ -9,7 +9,7 @@ var sourcemaps = require('gulp-sourcemaps');
 var del = require('del');
 var Config = require('./gulpfile.config');
 var tsProject = tsc.createProject('tsconfig.json');
-var browserSync = require('browser-sync');
+var browserSync = require('browser-sync').create();
 var runSequence = require('run-sequence');
 var nodemon = require('nodemon');
 
@@ -30,23 +30,41 @@ var config = new Config();
 //     })).pipe(gulp.dest(config.typings));
 // });
 
-gulp.task('ts-lint', function () {
-    return gulp.src(config.typeScriptFiles).pipe(tslint()).pipe(tslint.report('prose'));
+gulp.task('front-ts-lint', function () {
+    return gulp.src(config.frontendTypeScriptFiles).pipe(tslint()).pipe(tslint.report('prose'));
 });
 
-gulp.task('compile-ts-debug', function () {
-    var sourceTsFiles = [config.typeScriptFiles,
-                         config.libraryTypeScriptDefinitions];
+gulp.task('back-ts-lint', function () {
+    return gulp.src(config.backendTypeScriptFiles).pipe(tslint()).pipe(tslint.report('prose'));
+});
 
+function compileTs(typeScriptSources, root) {
+    var sourceTsFiles;
+    if(typeScriptSources.constructor !== Array) {
+        sourceTsFiles = [typeScriptSources,
+                         config.libraryTypeScriptDefinitions];
+    } else {
+        sourceTsFiles = typeScriptSources.slice();
+        sourceTsFiles.push(config.libraryTypeScriptDefinitions);
+    }
 
     var tsResult = gulp.src(sourceTsFiles)
                        .pipe(sourcemaps.init())
                        .pipe(tsc(tsProject));
 
-    tsResult.dts.pipe(gulp.dest(config.sources));
+    tsResult.dts.pipe(gulp.dest(root));
+
     return tsResult.js
-                    .pipe(sourcemaps.write('.'))
-                    .pipe(gulp.dest(config.sources));
+        .pipe(sourcemaps.write('.'))
+        .pipe(gulp.dest(root));
+}
+
+gulp.task('compile-backend-ts-debug', function () {
+    return compileTs(config.backendTypeScriptFiles, config.sources);
+});
+
+gulp.task('compile-frontend-ts-debug', function () {
+    return compileTs(config.frontendTypeScriptFiles, config.publicRoot);
 });
 
 gulp.task('clean-ts', function (cb) {
@@ -61,33 +79,39 @@ gulp.task('clean-ts', function (cb) {
 });
 
 gulp.task('watch', function() {
-    gulp.watch([config.typeScriptFiles], ['ts-lint', 'compile-ts-debug']);
+    gulp.watch([config.backendTypeScriptFiles], ['back-ts-lint', 'compile-backend-ts-debug']);
+    gulp.watch([config.frontendTypeScriptFiles], ['front-ts-lint', 'compile-frontend-ts-debug']);
 });
 
 gulp.task('nodemon', function(cb) {
-  var started = false;
+var started = false;
 
-	return nodemon({
-		script: config.startScript,
+    return nodemon({
+        script: config.startScript,
     nodeArgs: ['--debug']
-	}).on('start', function () {
-		// to avoid nodemon being started multiple times
-		// thanks @matthisk
-		if (!started) {
-			cb();
-			started = true;
-		}
-	});
+    }).on('start', function () {
+        // to avoid nodemon being started multiple times
+        // thanks @matthisk
+        if (!started) {
+            cb();
+            started = true;
+        }
+    });
 });
 
 gulp.task('serve', ['nodemon', 'watch'], function() {
-  browserSync.init(null, {
-    port: 7000,
-    proxy: "http://localhost:3000",
-    files: [
-      './app/public/**/*.*'
-    ]
-  });
+    browserSync.init({
+        port: 7000,
+        proxy: "http://localhost:3000",
+        files: [
+            config.publicRoot + '/**/*.js',
+            config.publicRoot + '/**/*.html',
+            config.publicRoot + '/**/*.css',
+            '!' + config.bowerComponents
+        //'!' + config.publicRoot + '/scss/**/*.scss'
+        ],
+        loglevel: "debug"
+    });
 });
 
 gulp.task('default', ['ts-lint', 'compile-ts']);
