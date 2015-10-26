@@ -10,6 +10,9 @@ var GulpConfig = (function () {
         this.backendTypeScriptFiles = [this.sources + '/**/*.ts', '!' + this.publicRoot];
         this.frontendTypeScriptFiles = this.publicRoot + '/**/*.ts';
 
+        this.scssFiles = this.publicRoot + '/scss/*.scss';
+        this.cssDir = this.publicRoot + '/styles';
+
         this.typings = './typings';
         this.libraryTypeScriptDefinitions = './typings/**/*.ts';
 

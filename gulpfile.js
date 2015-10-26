@@ -12,6 +12,7 @@ var tsProject = tsc.createProject('tsconfig.json');
 var browserSync = require('browser-sync').create();
 var runSequence = require('run-sequence');
 var nodemon = require('nodemon');
+var sass = require('gulp-sass');
 
 var config = new Config();
 
@@ -78,9 +79,16 @@ gulp.task('clean-ts', function (cb) {
   del(typeScriptGenFiles, cb);
 });
 
+gulp.task('transpile-scss', function() {
+    gulp.src(config.scssFiles)
+        .pipe(sass().on('error', sass.logError))
+        .pipe(gulp.dest(config.cssDir));
+})
+
 gulp.task('watch', function() {
     gulp.watch([config.backendTypeScriptFiles], ['back-ts-lint', 'compile-backend-ts-debug']);
     gulp.watch([config.frontendTypeScriptFiles], ['front-ts-lint', 'compile-frontend-ts-debug']);
+    gulp.watch([config.scssFiles], ['transpile-scss']);
 });
 
 gulp.task('nodemon', function(cb) {
