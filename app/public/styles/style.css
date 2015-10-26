@@ -1,0 +1,17 @@
+body {
+    background-color: royalblue;
+}
+
+h1, p {
+	color: yellowgreen;
+    font-family: sans-serif;
+    text-align: center;
+}
+
+h1 {
+    font-size: 40pt;
+}
+
+p {
+    font-size: 20pt;
+}
