@@ -1,6 +1,7 @@
 'use strict';
 
 var gulp = require('gulp');
+var autoprefixer = require('gulp-autoprefixer');
 var debug = require('gulp-debug');
 var inject = require('gulp-inject');
 var tsc = require('gulp-typescript');
@@ -82,6 +83,10 @@ gulp.task('clean-ts', function (cb) {
 gulp.task('transpile-scss', function() {
     gulp.src(config.scssFiles)
         .pipe(sass().on('error', sass.logError))
+        .pipe(autoprefixer({
+            browsers: ['> 5%'],
+            cascade: true
+        }))
         .pipe(gulp.dest(config.cssDir));
 })
 
