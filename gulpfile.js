@@ -109,6 +109,10 @@ var started = false;
             cb();
             started = true;
         }
+    }).on('restart', function() {
+        setTimeout(function() {
+            browserSync.reload(true);
+        }, config.browsersyncRestartDelay);
     });
 });
 

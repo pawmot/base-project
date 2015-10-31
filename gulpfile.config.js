@@ -17,6 +17,8 @@ var GulpConfig = (function () {
         this.libraryTypeScriptDefinitions = './typings/**/*.ts';
 
         this.bowerComponents = this.sources + '/public/components';
+
+        this.browsersyncRestartDelay = 1000;
     }
     return gulpConfig;
 })();
